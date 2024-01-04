@@ -1,16 +1,27 @@
-FROM ubuntu
+FROM ubuntu:20.04
 
-RUN apt -y update && apt install -y wget curl tar bash unzip
+RUN apt-get update -y && apt-get install -y debconf apt-utils dialog fuse3
 
-RUN mkdir /opt/alist \
-&& wget -q https://github.com/Xhofe/alist/releases/latest/download/alist-linux-amd64.tar.gz -O /opt/alist/alist.tar.gz \
-&& tar -C /opt/alist -Pzxvf /opt/alist/alist.tar.gz \
-&& chmod +x /opt/alist/alist \
-&& wget -q https://raw.githubusercontent.com/Desseer/myap/main/a.sh -O /opt/alist/a.sh \
-&& mkdir /opt/alist/data \
-&& wget -q https://raw.githubusercontent.com/Desseer/myap/config.json -O /opt/alist/data/config.json \
-&& wget -q https://raw.githubusercontent.com/Desseer/myap/main/data.db -O /opt/alist/data/data.db \
-&& wget -q https://raw.githubusercontent.com/Desseer/myap/main/data.db-shm -O /opt/alist/data/data.db-shm \
-&& wget -q https://raw.githubusercontent.com/Desseer/myap/main/data.db-wal -O /opt/alist/data/data.db-wal
+ENV PATH=/app:$PATH
 
-ENTRYPOINT bash /opt/alist/a.sh
+RUN mkdir -p /app/data
+
+WORKDIR /app
+
+COPY alist /app/
+
+RUN chmod +x /app/alist
+
+COPY rclone.tar.gz /tmp/
+
+RUN cd /tmp/ && tar -zxvf rclone.tar.gz && rm rclone.tar.gz && mv rclone /usr/local/bin/ && chmod +x /usr/local/bin/rclone
+
+COPY rclone.conf /app/
+
+EXPOSE 5244
+
+COPY entrypoint.sh /app/
+
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["./entrypoint.sh"]
