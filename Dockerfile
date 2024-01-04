@@ -12,12 +12,6 @@ COPY alist /app/
 
 RUN chmod +x /app/alist
 
-COPY rclone.tar.gz /tmp/
-
-RUN cd /tmp/ && tar -zxvf rclone.tar.gz && rm rclone.tar.gz && mv rclone /usr/local/bin/ && chmod +x /usr/local/bin/rclone
-
-COPY rclone.conf /app/
-
 EXPOSE 5244
 
 COPY entrypoint.sh /app/
