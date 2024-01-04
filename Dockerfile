@@ -1,21 +1,16 @@
-FROM ubuntu:20.04
+FROM alpine
 
-RUN apt-get update -y && apt-get install -y debconf apt-utils dialog fuse3
+COPY ./content /workdir/
 
-ENV PATH=/app:$PATH
+RUN apk add --no-cache curl runit bash tzdata \
+    && chmod +x /workdir/service/*/run \
+    && sh /workdir/install.sh \
+    && rm /workdir/install.sh \
+    && ln -s /workdir/service/* /etc/service/
 
-RUN mkdir -p /app/data
+ENV PORT=3000
+ENV TZ=UTC
 
-WORKDIR /app
+EXPOSE 3000
 
-COPY alist /app/
-
-RUN chmod +x /app/alist
-
-EXPOSE 5244
-
-COPY entrypoint.sh /app/
-
-RUN chmod +x /app/entrypoint.sh
-
-CMD ["./entrypoint.sh"]
+ENTRYPOINT ["runsvdir", "/etc/service"]
